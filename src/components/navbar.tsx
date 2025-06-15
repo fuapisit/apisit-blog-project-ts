@@ -1,26 +1,75 @@
-import { FC } from "react";
+import logo from "../assets/icons/logo.png";
+import { useState } from "react";
 
-export const NavBar: FC = () => {
+const NavBar: React.FC = () => {
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+
   return (
-    <nav className="flex justify-between items-center px-8 py-6 bg-white shadow-md sticky top-0 z-50">
-      {/* Logo */}
-      <div className="text-2xl font-bold text-gray-900 cursor-pointer">
-        hh.
-      </div>
+    <nav>
+      <div className="w-screen bg-[#46467A] h-[60px] flex justify-between items-center md:h-[80px]">
+        <img
+          src={logo}
+          alt="logo"
+          className="w-[40px] h-[40px] m-3 md:w-[60px] md:h-[60px] md:ml-20"
+        />
+        <div className="md:w-[276px] md:h-[48px] md:mr-25">
+          <ul className="hidden md:flex md:justify-between">
+            <li>
+              <a
+                href="/login"
+                className="border rounded-full block py-3 text-center w-[127px] h-[48px] leading-6 text-[16px] text-white bg-[#FFC212] hover:bg-[#303055]"
+              >
+                Log in
+              </a>
+            </li>
+            <li>
+              <a
+                href="/signup"
+                className="border rounded-full block py-3 text-center w-[127px] h-[48px] leading-6 text-[16px] bg-white hover:bg-gray-200"
+              >
+                Sign up
+              </a>
+            </li>
+          </ul>
+        </div>
+        {/* mobile responsive*/}
+        <div className="relative md:hidden">
+          {/* Hamburger Button */}
+          <button
+            className="m-5 text-white text-xl"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-label="Toggle menu"
+          >
+            ☰
+          </button>
 
-      {/* Buttons */}
-      <div className="flex gap-4">
-        <button className="px-6 py-2 rounded-full border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 hover:shadow-md transition cursor-pointer">
-          Log in
-        </button>
-        <button className="px-6 py-2 rounded-full bg-black text-white hover:bg-gray-800 hover:shadow-md transition cursor-pointer">
-          Sign up
-        </button>
+          {/* Mobile Menu */}
+          {isOpen && (
+            <div className="absolute top-16 right-0 bg-white shadow-lg p-2 w-screen text-center z-50">
+              <ul className="flex flex-col space-y-2">
+                <li>
+                  <a
+                    href="/login"
+                    className="border rounded-full block p-2 bg-white hover:bg-gray-200"
+                  >
+                    Log in
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/signup"
+                    className="border rounded-full block p-2 text-white bg-[#392346] hover:bg-gray-200"
+                  >
+                    Sign up
+                  </a>
+                </li>
+              </ul>
+            </div>
+          )}
+        </div>
       </div>
     </nav>
   );
 };
-
-
 
 export default NavBar;
