@@ -1,4 +1,4 @@
-import logo from "../assets/icons/logo.png";
+import logo from "../assets/hero-image.jpg";
 import { useState } from "react";
 
 const NavBar: React.FC = () => {

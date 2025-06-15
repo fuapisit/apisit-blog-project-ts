@@ -30,4 +30,3 @@ const ArticleSection: FC = () => {
 };
 
 export default ArticleSection;
-
