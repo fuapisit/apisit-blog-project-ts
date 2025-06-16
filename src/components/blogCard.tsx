@@ -1,3 +1,4 @@
+// src/components/BlogCard.tsx
 import { FC } from "react";
 
 type BlogCardProps = {
