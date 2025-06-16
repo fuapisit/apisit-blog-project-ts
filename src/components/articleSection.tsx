@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import BlogCard from "../components/blogCard";
 import { Search as SearchIcon } from "lucide-react";
@@ -34,26 +34,25 @@ const ArticleSection: FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<typeof categories[number]>("Highlight");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  // แปลงวันที่ ISO -> "11 September 2024"
   const formatDate = (isoDate: string): string => {
     const options: Intl.DateTimeFormatOptions = { day: "2-digit", month: "long", year: "numeric" };
     return new Date(isoDate).toLocaleDateString("en-GB", options);
   };
 
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async () => {
     setIsLoading(true);
     try {
-      const categoryParam = selectedCategory === "Highlight" ? "" : selectedCategory;
+      const categoryParam = selectedCategory === "Highlight" ? undefined : selectedCategory;
+
       const response = await axios.get(API_URL, {
         params: {
           page,
           limit: 6,
-          category: categoryParam || undefined,
+          category: categoryParam,
           keyword: searchQuery || undefined,
         },
       });
 
-      // แปลงวันที่และรวมโพสต์
       const newPosts: Post[] = response.data.posts.map((post: any) => ({
         ...post,
         date: formatDate(post.date),
@@ -67,30 +66,32 @@ const ArticleSection: FC = () => {
     } finally {
       setIsLoading(false);
     }
+  }, [page, selectedCategory, searchQuery]);
+
+  useEffect(() => {
+    fetchPosts();
+  }, [fetchPosts]);
+
+  const handleCategoryChange = (value: typeof categories[number]) => {
+    if (value === selectedCategory) return;
+    setSelectedCategory(value);
+    setPage(1);
+    setPosts([]);
+    setHasMore(true);
   };
+
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      setPage(1);
+      setPosts([]);
+      setHasMore(true);
+    }, 500);
+    return () => clearTimeout(delayDebounce);
+  }, [searchQuery]);
 
   const handleLoadMore = () => {
     if (!isLoading && hasMore) setPage((prev) => prev + 1);
   };
-
-  const handleCategoryChange = (value: typeof categories[number]) => {
-    setSelectedCategory(value);
-    setPosts([]);
-    setPage(1);
-    setHasMore(true);
-  };
-
-  useEffect(() => {
-    // เมื่อ searchQuery เปลี่ยน รีเซ็ตข้อมูลและโหลดหน้าแรก
-    setPosts([]);
-    setPage(1);
-    setHasMore(true);
-  }, [searchQuery]);
-
-  useEffect(() => {
-    fetchPosts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, selectedCategory]);
 
   return (
     <section className="p-8 bg-white">
@@ -98,7 +99,6 @@ const ArticleSection: FC = () => {
 
       {/* Filter + Search Bar */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-gray-100 p-6 rounded-xl mb-6 w-full">
-        {/* Filter Buttons (Desktop) */}
         <div className="hidden md:flex flex-wrap gap-3">
           {categories.map((category) => (
             <button
@@ -115,7 +115,6 @@ const ArticleSection: FC = () => {
           ))}
         </div>
 
-        {/* Filter Dropdown (Mobile) */}
         <div className="md:hidden w-full">
           <Select value={selectedCategory} onValueChange={handleCategoryChange}>
             <SelectTrigger className="w-full py-3 rounded-lg border text-gray-700">
@@ -131,7 +130,6 @@ const ArticleSection: FC = () => {
           </Select>
         </div>
 
-        {/* Search Box */}
         <div className="w-full md:w-auto relative">
           <input
             type="text"
@@ -150,6 +148,7 @@ const ArticleSection: FC = () => {
           posts.map((post) => (
             <BlogCard
               key={post.id}
+              id={post.id.toString()} // ✅ เพิ่มตรงนี้
               image={post.image}
               category={post.category}
               title={post.title}
@@ -165,7 +164,6 @@ const ArticleSection: FC = () => {
         )}
       </div>
 
-      {/* View More */}
       {hasMore && (
         <div className="text-center mt-8">
           <button
