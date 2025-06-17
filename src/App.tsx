@@ -3,7 +3,7 @@ import NavBar from "./components/navbar";
 import HeroSection from "./components/heroSection";
 import Footer from "./components/footer";
 import ArticleSection from "./components/articleSection";
-import PostPage from "./pages/Postpage"; // แก้ path ให้ถูกต้องตาม folder structure
+import PostPage from "../src/pages/Postpage"; 
 
 function App() {
   return (
@@ -12,7 +12,6 @@ function App() {
 
       <div className="flex-grow">
         <Routes>
-          {/* หน้า Landing Page */}
           <Route
             path="/"
             element={
@@ -22,9 +21,7 @@ function App() {
               </>
             }
           />
-
-          {/* หน้าแสดงโพสต์ตาม postId */}
-          <Route path="/post/:postId" element={<PostPage />} />
+          <Route path="/posts/:postId" element={<PostPage />} />
         </Routes>
       </div>
 

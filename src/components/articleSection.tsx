@@ -17,7 +17,7 @@ type Post = {
   title: string;
   description: string;
   author: string;
-  date: string; // formatted date string like "11 September 2024"
+  date: string;
   likes?: number;
   content?: string;
 };
@@ -28,6 +28,7 @@ const API_URL = "https://blog-post-project-api.vercel.app/posts";
 
 const ArticleSection: FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [searchResults, setSearchResults] = useState<Post[]>([]);
   const [page, setPage] = useState<number>(1);
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -59,7 +60,6 @@ const ArticleSection: FC = () => {
       }));
 
       setPosts((prev) => (page === 1 ? newPosts : [...prev, ...newPosts]));
-
       setHasMore(response.data.currentPage < response.data.totalPages);
     } catch (error) {
       console.error("Error fetching posts:", error);
@@ -80,12 +80,34 @@ const ArticleSection: FC = () => {
     setHasMore(true);
   };
 
+  // 🔍 Autocomplete dropdown search
   useEffect(() => {
-    const delayDebounce = setTimeout(() => {
-      setPage(1);
-      setPosts([]);
-      setHasMore(true);
-    }, 500);
+    const delayDebounce = setTimeout(async () => {
+      if (searchQuery.trim() === "") {
+        setSearchResults([]);
+        return;
+      }
+
+      try {
+        const response = await axios.get(API_URL, {
+          params: {
+            keyword: searchQuery,
+            page: 1,
+            limit: 5,
+          },
+        });
+
+        const results = response.data.posts.map((post: any) => ({
+          ...post,
+          date: formatDate(post.date),
+        }));
+
+        setSearchResults(results);
+      } catch (error) {
+        console.error("Error fetching search results:", error);
+      }
+    }, 300);
+
     return () => clearTimeout(delayDebounce);
   }, [searchQuery]);
 
@@ -130,6 +152,7 @@ const ArticleSection: FC = () => {
           </Select>
         </div>
 
+        {/* 🔍 Search Box + Dropdown */}
         <div className="w-full md:w-auto relative">
           <input
             type="text"
@@ -139,6 +162,21 @@ const ArticleSection: FC = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           <SearchIcon className="w-5 h-5 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none" />
+
+          {/* 🔽 Autocomplete Dropdown */}
+          {searchQuery.trim() !== "" && searchResults.length > 0 && (
+            <ul className="absolute z-10 top-full mt-1 left-0 w-full bg-white rounded-lg shadow-lg border overflow-hidden">
+              {searchResults.map((post) => (
+                <li
+                  key={post.id}
+                  className="px-4 py-3 hover:bg-gray-100 cursor-pointer text-left text-sm text-gray-800"
+                  onClick={() => window.location.href = `/posts/${post.id}`} // หรือใช้ useNavigate
+                >
+                  {post.title}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
 
@@ -148,7 +186,7 @@ const ArticleSection: FC = () => {
           posts.map((post) => (
             <BlogCard
               key={post.id}
-              id={post.id.toString()} // ✅ เพิ่มตรงนี้
+              id={post.id.toString()}
               image={post.image}
               category={post.category}
               title={post.title}
